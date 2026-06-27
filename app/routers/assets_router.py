@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.asset import AssetCreate, AssetResponse, AssetUpdate
+from app.schemas.asset_schema import AssetCreate, AssetResponse, AssetUpdate
 from app.services import asset_service
 from typing import Literal
 
@@ -73,3 +73,31 @@ def delete_asset(asset_id: str, db: Session = Depends(get_db)):
             detail=f"Asset with ID '{asset_id}' not found. Erasure rejected."
         )
     return {"message": f"Asset '{asset_id}' successfully deleted out of data states."}
+
+
+
+@router.post("/{asset_id}/stale", response_model=AssetResponse)
+def flag_asset_stale(asset_id: str, db: Session = Depends(get_db)):
+    """Endpoint action to manually mark an asset as stale using the standard update service."""
+    # Programmatically create the update payload
+    stale_payload = AssetUpdate(status="stale")
+    
+    # Direct reuse of your core CRUD update function!
+    updated_asset = asset_service.update_existing_asset(db, asset_id, stale_payload)
+    if not updated_asset:
+        raise HTTPException(status_code=404, detail="Target asset not found.")
+    return updated_asset
+
+@router.post("/bulk-import", status_code=status.HTTP_201_CREATED)
+def bulk_import(payload: list[dict], db: Session = Depends(get_db)):
+    """Accepts an array of scanned assets and processes them systematically in a batch transaction."""
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Payload list cannot be empty."
+        )
+    result = asset_service.process_bulk_import(db, payload)
+    return {
+        "message": "Bulk data processing completed successfully.",
+        "details": result
+    }
