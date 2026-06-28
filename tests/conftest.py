@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 # =============================================================================
 # tests/conftest.py — Shared fixtures and SQLite compatibility layer
 # =============================================================================
@@ -64,7 +65,7 @@ from sqlalchemy.pool import StaticPool
 from app.main import app
 from app.database import Base, get_db
 from app.models.user import User, Role
-from app.models.asset_model import Asset, AssetType, AssetStatus
+from app.models.asset_model import Asset
 from app.models.relationship_model import AssetRelationship
 from app.core.security import get_password_hash, create_access_token
 
