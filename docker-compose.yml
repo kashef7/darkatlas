@@ -1,0 +1,70 @@
+version: "3.9"
+
+# =============================================================================
+# DarkAtlas — Multi-Container Orchestration
+# =============================================================================
+# Usage:
+#   docker-compose up --build          # Start all services
+#   docker-compose up --build -d       # Detached mode
+#   docker-compose down -v             # Stop and remove volumes
+#
+# Environment: The `api` service reads credentials from a local `.env` file.
+# The DB_URL is overridden here to point to the `db` container hostname.
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16 — Persistent relational store
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: darkatlas_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # Named volume — survives container restarts and recreations
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d darkatlas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # FastAPI Backend — DarkAtlas API server
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: darkatlas_api
+    restart: unless-stopped
+    # Read base configuration from .env file on the host
+    env_file:
+      - .env
+    environment:
+      # Override DB_URL to target the `db` service container, not localhost
+      DB_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "${PORT}:8000"
+    depends_on:
+      db:
+        # Wait until PostgreSQL passes its pg_isready health check before
+        # starting the API container — prevents connection-refused startup errors
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+
+# =============================================================================
+# Named Volumes — data persists across container lifecycle events
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local

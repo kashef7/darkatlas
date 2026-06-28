@@ -1,0 +1,7 @@
+# This directory stores Alembic-generated migration version scripts.
+# Generate a new migration with:
+#   alembic revision --autogenerate -m "describe your change"
+# Apply all pending migrations with:
+#   alembic upgrade head
+# Roll back one migration with:
+#   alembic downgrade -1

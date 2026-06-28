@@ -1,9 +1,9 @@
 import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from app.models.relationship import Relationship
-from app.models.asset import Asset
-from app.schemas.relationship import RelationshipCreate
+from app.models.relationship_model import AssetRelationship as Relationship
+from app.models.asset_model import Asset
+from app.schemas.relationship_schema import RelationshipCreate
 from fastapi import HTTPException, status
 
 

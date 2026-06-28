@@ -1,13 +1,18 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.relationship import RelationshipCreate, RelationshipResponse, GraphResponse
+from app.schemas.relationship_schema import RelationshipCreate, RelationshipResponse, GraphResponse
 from app.services import relationship_service
+from app.dependencies import require_editor_or_admin
 
 router = APIRouter(prefix="/relationships", tags=["Relationships"])
 
 @router.post("/", response_model=RelationshipResponse, status_code=status.HTTP_201_CREATED)
-def create_relationship_link(payload: RelationshipCreate, db: Session = Depends(get_db)):
+def create_relationship_link(
+    payload: RelationshipCreate,
+    db: Session = Depends(get_db),
+    _ = Depends(require_editor_or_admin)
+):
     """
     Creates a directional graph relationship between two existing assets.
     Enforces strict architectural rules (e.g., subdomain -> domain).
