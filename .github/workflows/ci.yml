@@ -53,13 +53,13 @@ jobs:
 
       - name: Run tests via pytest
         env:
-          DB_URL: sqlite:///:memory:
-          SECRET_KEY: test_secret_key_for_ci_pipeline
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_db
+          DB_URL: "sqlite:///:memory:"
+          SECRET_KEY: "test_secret_key_for_ci_pipeline"
+          POSTGRES_USER: "test_user"
+          POSTGRES_PASSWORD: "test_password"
+          POSTGRES_DB: "test_db"
           PORT: 8000
-          APP_NAME: DarkAtlasTest
+          APP_NAME: "DarkAtlasTest"
           DEBUG: "True"
         run: pytest tests/ -v
 
