@@ -95,4 +95,4 @@ def test_login_and_rbac_flow(client, db_session):
 
     headers_admin = {"Authorization": f"Bearer {admin_token}"}
     response = client.delete(f"/assets/{asset_id}", headers=headers_admin)
-    assert response.status_code == 200
+    assert response.status_code == 204

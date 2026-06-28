@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.asset_schema import AssetCreate, AssetResponse, AssetUpdate
@@ -103,7 +103,7 @@ def update_asset(
     return updated_asset
 
 
-@router.delete("/{asset_id}", status_code=status.HTTP_200_OK)
+@router.delete("/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_asset(
     asset_id: str,
     db: Session = Depends(get_db),
@@ -116,7 +116,7 @@ def delete_asset(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Asset with ID '{asset_id}' not found. Erasure rejected.",
         )
-    return {"message": f"Asset '{asset_id}' successfully deleted."}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/{asset_id}/stale", response_model=AssetResponse)

@@ -1,6 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from app.config import settings
 from app.database import get_db
 from app.routers.assets_router import router as assets_router
@@ -42,7 +45,44 @@ def create_app() -> FastAPI:
                 detail=f"Database connection failed: {str(e)}",
             )
 
+    # -----------------------------------------------------------------------
+    # Global Exception Handlers
+    # Guarantee a uniform {"detail": "..."} JSON response shape for all
+    # unhandled errors, regardless of where in the stack they originate.
+    # -----------------------------------------------------------------------
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        """Returns 422 with Pydantic validation details in FastAPI's default format."""
+        return JSONResponse(
+            status_code=422,
+            content={"detail": exc.errors()},
+        )
+
+    @app.exception_handler(SQLAlchemyError)
+    async def sqlalchemy_exception_handler(
+        request: Request, exc: SQLAlchemyError
+    ) -> JSONResponse:
+        """Returns 500 for any uncaught database-layer failure."""
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "A database error occurred. Please try again later."},
+        )
+
+    @app.exception_handler(Exception)
+    async def generic_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
+        """Catch-all safety net — returns 500 for any unhandled runtime error."""
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "An unexpected internal server error occurred."},
+        )
+
     return app
+
 
 
 app = create_app()

@@ -106,9 +106,9 @@ class TestAssetCRUD:
         r = client.delete(f"/assets/{asset_id}", headers={"Authorization": f"Bearer {editor_token}"})
         assert r.status_code == 403
 
-        # Admin → 200
+        # Admin → 204
         r = client.delete(f"/assets/{asset_id}", headers={"Authorization": f"Bearer {admin_token}"})
-        assert r.status_code == 200
+        assert r.status_code == 204
 
         # Verify it's gone
         r = client.get(f"/assets/{asset_id}")

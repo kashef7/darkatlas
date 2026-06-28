@@ -26,8 +26,8 @@ class Asset(Base):
 
     # Explicit callable lambda to produce string UUIDs — never raw uuid.UUID objects
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    type = Column(Enum(AssetType), nullable=False)
-    status = Column(Enum(AssetStatus), default=AssetStatus.ACTIVE, nullable=False)
+    type = Column(Enum(AssetType), nullable=False, index=True)
+    status = Column(Enum(AssetStatus), default=AssetStatus.ACTIVE, nullable=False, index=True)
     value = Column(String, nullable=False, index=True)
 
     # Timezone-aware timestamps for correct UTC handling
